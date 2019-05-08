@@ -1,0 +1,88 @@
+---
+- hosts: webserver
+  become: True
+
+  vars:
+    # repository
+    repo_website: "https://github.com/team/myproject.git"
+    # links
+    website_link: "/etc/nginx/sites-enabled/{{ website_name }}"
+    # Locations
+    nginx_template: nginx/templates
+    website_dest: "/var/www/{{ website_name }}"
+    website_origin: "/etc/nginx/sites-available/{{ website_name }}"
+    website_name: "mywebsitename"
+
+    # Lists
+    repo: ['ppa:jonathonf/python-3.6', 'ppa:ondrej/php']
+    packages:
+      - "python3.6"
+      - "git"
+      - "nginx"
+  tasks:
+
+    # # # # # #
+    # Install packages
+    # # # # # #
+
+    - apt_repository:
+        repo: "{{ item }}"
+        state: present
+      loop: "{{ repo }}"
+
+    - name: Upgrade all packages to the latest version
+      apt:
+        update_cache: yes
+        upgrade: dist
+
+    - name: Install packages
+      apt:
+        name: "{{ item }}"
+        state: present
+        update_cache: yes
+      loop: "{{ packages }}"
+
+    - name: write nginx.conf
+      action: template src='nginx/templates/nginx.conf.j2' dest='/etc/nginx/nginx.conf' backup=yes
+
+    - name: write site-enabled "{{ website_name }}"
+      template:
+        src: "{{ nginx_template }}/{{ website_name }}.j2"
+        dest: "{{ website_origin }}"
+        backup: yes
+
+      notify:
+        - Reload Nginx
+        - Restart php
+
+    - name: Create symlink "{{ website_name }}"
+      file:
+        src: "{{ website_origin }}"
+        dest: "{{ website_link }}"
+        state: link
+      notify: Reload Nginx
+
+    #Clone website
+    - name:  Clone "{{ website_name }}"
+      git:
+        repo: "{{ repo_website }}"
+        dest: "{{ website_dest }}"
+        remote: "{{ branch }}"
+        clone: yes
+        update: no
+
+    - name: Set permisons
+      file:
+        path: "{{ website_dest }}"
+        owner: www-data
+        group: www-data
+        recurse: yes
+      notify:
+        - Reload Nginx
+
+  handlers:
+    ##
+    # service restart
+    ##
+    - name: Reload Nginx
+      action: service name=nginx state=reloaded
