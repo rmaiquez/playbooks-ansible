@@ -1,11 +1,11 @@
 server {
         listen 80;
 
-        root /var/www/mywebsitename;
+        root /var/www/{{ website }};
 
         index index.php index.html index.htm index.nginx-debian.html;
 
-        server_name mywebsitename.com;
+        server_name {{ website }};
 
         location / {
           try_files $uri $uri/ /index.php$is_args$args;

@@ -1,0 +1,68 @@
+---
+- hosts: server
+  become: True
+
+  vars:
+    # # # # # #
+    # vars define
+    # # # # # #
+    repo: ['ppa:jonathonf/python-3.6', 'deb https://packages.grafana.com/oss/deb stable main']
+    hostname: 'servername'
+    gpg_keys:
+      - "https://packages.grafana.com/gpg.key"
+
+    packages:
+      - "rsync"
+      - "python3.6"
+      - "git"
+      - "grafana"
+      - "apt-transport-https"
+
+  tasks:
+    # # # # # #
+    # install packages
+    # # # # # #
+    - name: Add repositories releases
+      apt_repository:
+        repo: "{{ item }}"
+        state: present
+      loop: "{{ repo }}"
+
+    - name: Add an Apt signing key, uses whichever key is at the URL
+      apt_key:
+        url: "{{ item }}"
+        state: present
+      loop: "{{ gpg_keys }}"
+
+    - name: Upgrade all packages to the latest version
+      apt:
+        update_cache: yes
+        upgrade: dist
+
+    - name: Install packages and grafana
+      apt:
+        name: "{{ item }}"
+        state: present
+        update_cache: yes
+      loop: "{{ packages }}"
+      notify:
+        - Start Grafana
+
+    - hostname:
+        name: "{{ hostname }}"
+
+    - name: add myself to /etc/hosts
+      lineinfile:
+        dest: /etc/hosts
+        regexp: '^127\.0\.0\.1[ \t]+localhost'
+        line: '127.0.0.1 localhost {{ hostname }}'
+        state: present
+
+
+  handlers:
+    # # # # # #
+    # reboot services
+    # # # # # #
+    - name: Start Grafana
+      action: service name=grafana-server state=started
+

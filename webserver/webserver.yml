@@ -1,30 +1,49 @@
 ---
-- hosts: webserver
+- hosts: server
   become: True
 
   vars:
-    # repository
-    repo_website: "https://github.com/team/myproject.git"
-    # links
     website_link: "/etc/nginx/sites-enabled/{{ website_name }}"
-    # Locations
+    #Locations
     nginx_template: nginx/templates
-    website_dest: "/var/www/{{ website_name }}"
     website_origin: "/etc/nginx/sites-available/{{ website_name }}"
-    website_name: "mywebsitename"
+    website_name: {{ website }}
 
-    # Lists
+    #Versions
+    php_version: "7.2"
+    mysql_version: "5.7"
+
+    #loggins
+    db_user: "user"
+    db_pass: "pass"
+    db_name: "dbname"
+    db_host: "localhost"
+
+
+    #Lists
     repo: ['ppa:jonathonf/python-3.6', 'ppa:ondrej/php']
     packages:
+      - "rsync"
       - "python3.6"
+      - "python-mysqldb"
+      - "python-pymysql"
       - "git"
       - "nginx"
+      - "mysql-server-{{ mysql_version }}"
+      - "php{{ php_version }}-fpm"
+      - "php{{ php_version }}-mysql"
+      - "php{{ php_version }}-curl"
+      - "php{{ php_version }}-gd"
+      - "php{{ php_version }}-mbstring"
+      - "php-mcrypt"
+      - "php{{ php_version }}-xml"
+      - "php{{ php_version }}-xmlrpc"
+
+
   tasks:
-
-    # # # # # #
-    # Install packages
-    # # # # # #
-
+    ##
+    # installing packages
+    ##
     - apt_repository:
         repo: "{{ item }}"
         state: present
@@ -35,7 +54,7 @@
         update_cache: yes
         upgrade: dist
 
-    - name: Install packages
+    - name: Install LEMP enviroment
       apt:
         name: "{{ item }}"
         state: present
@@ -47,7 +66,7 @@
 
     - name: write site-enabled "{{ website_name }}"
       template:
-        src: "{{ nginx_template }}/{{ website_name }}.j2"
+        src: "{{ nginx_template }}/website.j2"
         dest: "{{ website_origin }}"
         backup: yes
 
@@ -62,27 +81,40 @@
         state: link
       notify: Reload Nginx
 
-    #Clone website
-    - name:  Clone "{{ website_name }}"
-      git:
-        repo: "{{ repo_website }}"
-        dest: "{{ website_dest }}"
-        remote: "{{ branch }}"
-        clone: yes
-        update: no
-
-    - name: Set permisons
-      file:
-        path: "{{ website_dest }}"
-        owner: www-data
-        group: www-data
-        recurse: yes
+    # Configure DB
+    - name: write my.cnf
+      template:
+        src: "mysql/templates/my.cnf.j2"
+        dest: /root/.my.cnf
+        owner: "{{ db_user }}"
+        mode: 0600
       notify:
-        - Reload Nginx
+        - restart mysql
+
+    - name: Create db user
+      mysql_user:
+        name: "{{ db_user }}"
+        password: "{{ db_pass }}"
+        priv: '*.*:ALL,GRANT'
+        state: present
+
+    - name: Create database
+      mysql_db:
+        name: "{{ db_name }}"
+        state: present
+        login_user: "{{ db_user }}"
+        login_password: "{{ db_pass }}"
+
 
   handlers:
     ##
-    # service restart
+    # restart services
     ##
+    - name: Restart php
+      action: service name=php{{ php_version }}-fpm state=restarted
+
     - name: Reload Nginx
       action: service name=nginx state=reloaded
+
+    - name: restart mysql
+      action: service name=mysql state=restarted
