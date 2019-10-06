@@ -8,10 +8,11 @@
 
 - name: write my.cnf
   template:
-    src: "roles/mysql/templates/my.cnf.j2"
+    src: "templates/my.cnf.j2"
     dest: /root/.my.cnf
-    owner: "{{ db_user }}"
-    mode: 0600
+    owner: "root"
+    group: "root"
+    mode: 0644
 
 - name: restart mysql
   action: service name=mysql state=restarted
@@ -27,5 +28,6 @@
   mysql_db:
     name: "{{ db_name }}"
     state: present
+    login_unix_socket: /var/run/mysqld/mysqld.sock
     login_user: "{{ db_user }}"
     login_password: "{{ db_pass }}"

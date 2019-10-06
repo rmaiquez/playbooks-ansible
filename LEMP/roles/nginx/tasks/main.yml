@@ -1,12 +1,12 @@
 ---
 - name: Install NGINX
   apt:
-    name: "nginx={{ nginx_version }}"
+    name: "nginx"
     state: present
     update_cache: yes
 
 - name: write nginx.conf
-  action: template src='nginx/templates/nginx.conf.j2' dest='/etc/nginx/nginx.conf' backup=yes
+  action: template src='templates/nginx.conf.j2' dest='/etc/nginx/nginx.conf' backup=yes
 
 - name: write site-enabled "{{ website_name }}"
   template:
@@ -19,6 +19,9 @@
     src: "{{ website_origin }}"
     dest: "{{ website_link }}"
     state: link
+
+- name: start nginx
+  action: service name=nginx state=started
 
 - name: restart nginx
   raw: service nginx reload

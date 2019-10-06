@@ -1,11 +1,12 @@
 server {
         listen 80;
+        listen 443 ssl;
 
-        root /var/www/{{ website }};
+        root /var/www/{{ website_name }};
 
         index index.php index.html index.htm index.nginx-debian.html;
 
-        server_name {{ website }};
+        server_name {{ website_name }};
 
         location / {
           try_files $uri $uri/ /index.php$is_args$args;
@@ -13,7 +14,7 @@ server {
 
         location ~ \.php$ {
           include snippets/fastcgi-php.conf;
-          fastcgi_pass unix:/run/php/php7.2-fpm.sock;
+          fastcgi_pass unix:/run/php/php{{ php_version }}-fpm.sock;
     }
 
         location ~ /\.ht {

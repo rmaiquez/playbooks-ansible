@@ -14,11 +14,7 @@
     state: present
     update_cache: yes
   loop:
-      - "rsync"
-      - "python3.6"
-      - "python-mysqldb"
-      - "python-pymysql"
-      - "git"
+      - "{{ common_pkg }}"
 
 - name: Upgrade server
   apt: upgrade=full

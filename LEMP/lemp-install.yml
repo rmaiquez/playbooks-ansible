@@ -2,6 +2,8 @@
 - name: Provision LEMP enviroment
   hosts: webserver
   become: True
+  vars_files:
+    - group_vars/local.yml
 
   roles:
     - common
