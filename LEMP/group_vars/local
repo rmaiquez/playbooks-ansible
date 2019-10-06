@@ -1,0 +1,48 @@
+---
+website_link: "/etc/nginx/sites-enabled/{{ website_name }}"
+nginx_template: roles/nginx/templates
+website_origin: "/etc/nginx/sites-available/{{ website_name }}"
+website_name: "pruebas.rmaiquez.com"
+
+# Versions
+php_version: "7.2"
+mysql_version: "5.7"
+nginx_version: "1.17.4"
+
+# Loggins db
+db_user: "usuario"
+db_pass: "usuario24"
+db_name: "pruebas"
+db_host: "localhost"
+
+
+# Repos list and packages
+repo: ['ppa:jonathonf/python-3.6']
+common_pkg:
+  - "rsync"
+  - "python3.6"
+  - "python-mysqldb"
+  - "python-pymysql"
+  - "git"
+
+mysql_pkg:
+  - "mysql-server-{{ mysql_version }}"
+
+php_pkg:
+  - "php{{ php_version }}-fpm"
+  - "php{{ php_version }}-mysql"
+  - "php{{ php_version }}-curl"
+  - "php{{ php_version }}-gd"
+  - "php{{ php_version }}-mbstring"
+  - "php-mcrypt"
+  - "php{{ php_version }}-xml"
+  - "php{{ php_version }}-xmlrpc"
+
+# Variables for Role Certbot certs.
+certbot_create_if_missing: false
+certbot_create_method: standalone
+certbot_admin_email: admin@example.com
+certbot_create_standalone_stop_services:
+  - nginx
+nginx_vhosts:
+  - {servername: "{{ website_name }}", documentroot: "/var/www/{{ website_name }}"}

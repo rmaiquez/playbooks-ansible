@@ -1,0 +1,25 @@
+---
+- name: Install NGINX
+  apt:
+    name: "nginx={{ nginx_version }}"
+    state: present
+    update_cache: yes
+
+- name: write nginx.conf
+  action: template src='nginx/templates/nginx.conf.j2' dest='/etc/nginx/nginx.conf' backup=yes
+
+- name: write site-enabled "{{ website_name }}"
+  template:
+    src: "{{ nginx_template }}/website.j2"
+    dest: "{{ website_origin }}"
+    backup: yes
+
+- name: Create symlink "{{ website_name }}"
+  file:
+    src: "{{ website_origin }}"
+    dest: "{{ website_link }}"
+    state: link
+
+- name: restart nginx
+  raw: service nginx reload
+  sudo: true

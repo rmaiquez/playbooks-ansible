@@ -1,0 +1,2 @@
+---
+-  include task: tasks/main.yml

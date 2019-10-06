@@ -1,0 +1,31 @@
+---
+- name: MySQL installing
+  apt:
+    name: "{{ item }}"
+    state: present
+    update_cache: yes
+  loop: "{{ mysql_pkg }}"
+
+- name: write my.cnf
+  template:
+    src: "roles/mysql/templates/my.cnf.j2"
+    dest: /root/.my.cnf
+    owner: "{{ db_user }}"
+    mode: 0600
+
+- name: restart mysql
+  action: service name=mysql state=restarted
+
+- name: Create db user
+  mysql_user:
+    name: "{{ db_user }}"
+    password: "{{ db_pass }}"
+    priv: '*.*:ALL,GRANT'
+    state: present
+
+- name: Create database
+  mysql_db:
+    name: "{{ db_name }}"
+    state: present
+    login_user: "{{ db_user }}"
+    login_password: "{{ db_pass }}"

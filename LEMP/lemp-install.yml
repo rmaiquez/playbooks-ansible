@@ -1,0 +1,11 @@
+---
+- name: Provision LEMP enviroment
+  hosts: webserver
+  become: True
+
+  roles:
+    - common
+    - nginx
+    - mysql
+    - php
+    - certbot

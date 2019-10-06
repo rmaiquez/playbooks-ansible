@@ -1,0 +1,20 @@
+---
+- name: PHP add php-{{ php_version }} PPA
+  apt_repository: repo='ppa:ondrej/php'
+                  state=present
+                  update_cache=yes
+
+- name: PHP Install packages
+  apt:
+    name: "{{ item }}"
+    state: present
+    update_cache: yes
+  loop: "{{ php_pkg }}"
+
+- name: PHP | restart nginx
+  raw: service nginx restart
+  sudo: true
+
+- name: PHP | restart fpm
+  raw: service php{{ php_version }}-fpm restart
+  sudo: true
