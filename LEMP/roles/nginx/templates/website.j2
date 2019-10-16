@@ -3,6 +3,9 @@ server {
         listen 443 ssl;
 
         root /var/www/{{ website_name }};
+        
+        ssl_certificate /etc/letsencrypt/live/{{ website_name }}/fullchain.pem;
+        ssl_certificate_key {/etc/letsencrypt/live/{ website_name }}/privkey.pem;
 
         index index.php index.html index.htm index.nginx-debian.html;
 

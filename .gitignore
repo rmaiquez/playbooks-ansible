@@ -1,3 +1,6 @@
 .DS_Store
 .idea/*
 *.retry
+
+# local testing variables 
+*testing.yml
