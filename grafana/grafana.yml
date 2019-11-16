@@ -12,7 +12,6 @@
       - "https://packages.grafana.com/gpg.key"
 
     packages:
-      - "rsync"
       - "python3.6"
       - "git"
       - "grafana"
